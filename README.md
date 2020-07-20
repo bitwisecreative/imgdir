@@ -1,4 +1,4 @@
-#Advanced Image Directory
+#ImgDir README
 
 ***
 
@@ -7,12 +7,17 @@
 - Auto-generated Image Sizing
 - Caching
 - Admin Area
+- PNG, JPG, GIF
 
 #### Requirements
 
 - Apache (with Rewrite)
 - PHP 5.4+
 - PHP GD Library
+
+#### Notes
+
+- GIF animations are not retained after resizing (TBD)
 
 #### Image Modifiers (GET Params):
 

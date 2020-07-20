@@ -33,6 +33,19 @@ progress[value]::-webkit-progress-value {
     background-color: aqua;
 }
 
+hr {
+    background: none;
+    border: none;
+    border-top: 1px solid #222;
+    border-bottom: 1px solid #444;
+}
+
+code {
+    font-family: consolas,monospace;
+    color: orange;
+    font-size: .9em;
+}
+
 #nav {
     padding:8px;
 }
@@ -68,4 +81,41 @@ progress[value]::-webkit-progress-value {
     display: inline-block;
     padding: 8px;
     font-size:1.2em;
+}
+
+.info {
+    color: skyblue;
+}
+
+.success {
+    color: chartreuse;
+}
+
+.error {
+    color: red;
+}
+
+.img-view {
+    width: 200px;
+    height: 272px;
+    display: inline-block;
+    text-align: center;
+    border: 1px solid #444;
+    margin: 4px 2px;
+}
+
+.img-view label {
+    color: aqua;
+    font-size: .9em;
+}
+
+.img-view .details {
+    font-size:.8em;
+}
+
+.dropzone {
+    min-height: 400px !important;
+    padding: 20px 20px !important;
+    background: #444 !important;
+    border: 1px dashed aqua !important;
 }
