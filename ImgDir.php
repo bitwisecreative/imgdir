@@ -99,7 +99,7 @@ class ImgDir {
             <head>
             <meta charset="utf-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <title>GD Auto</title>
+            <title>ImgDir</title>
             <style type="text/css">
             body {
                 background: #333;
