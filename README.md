@@ -1,4 +1,5 @@
-#ImgDir README
+# ImgDir
+## Convenient Image Directory
 
 ***
 
