@@ -33,7 +33,7 @@
 	- `f` (fit) (default)
 		- _fits the entire image into the size_
 	- `c` (crop)
-		- `center-crops the image`
+		- _center-crops the image_
 - **`b`** = background
 	- pass hex color (e.g., `ff23ba`) (default is white for jpg, transparent for png)
 		- _only applies with fit (`r=f`)_
