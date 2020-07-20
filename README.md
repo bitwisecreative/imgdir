@@ -18,6 +18,8 @@
 
 #### Notes
 
+- Change the `ADMIN_PASSWORD` in `config.php`
+- You can upload images manually to the `originals` folder
 - GIF animations are not retained after resizing (TBD)
 
 #### Image Modifiers (GET Params):
