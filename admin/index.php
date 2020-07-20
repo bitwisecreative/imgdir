@@ -34,6 +34,9 @@ switch($do){
     case 'dropzone':
         dropzone();
         exit;
+    case 'delete':
+        echo deleteimgfrompost();
+        exit;
 }
 
 //
@@ -187,12 +190,13 @@ function get_view() {
     foreach($images as $imginfo){
         $img_out.='
             <div class="img-view">
-                <img src="../'.$imginfo['img'].'?w=180&h=180&b=333333" />
+                <a href="../'.$imginfo['img'].'" target="_blank"><img src="../'.$imginfo['img'].'?w=180&h=180&b=333333" /></a>
                 <label>'.$imginfo['img'].'</label>
                 <div class="details">
                 '.$imginfo['mime'].'<br />'.$imginfo['size'][0].' x '.$imginfo['size'][1].'<br />'
                 .round($imginfo['bytes']/1000000,2).' MB<br />'
                 .date('Y-m-d H:i:s', $imginfo['mtime']).'
+                <div class="delete">X</div>
                 </div>
             </div>';
     }
@@ -200,6 +204,25 @@ function get_view() {
         <div class="view">
         '.$img_out.'
         </div>
+        <script>
+        $(function() {
+            var deleteElem=false;
+            $(".delete").on("click", function() {
+                var ok=confirm("Are you sure you want to delete this image?");
+                if(ok){
+                    deleteElem=$(this).closest(".img-view");
+                    $.post("?do=delete",{img:$(this).closest(".img-view").find("label").text()}).done(function(d){
+                        if(d==="ok"){
+                            deleteElem.remove();
+                        }else{
+                            alert(d);
+                        }
+                        deleteElem=false;
+                    });
+                }
+            });
+        });
+        </script>
     ';
     return $out;
 }
@@ -252,10 +275,6 @@ function parse_size($size) {
     }
 }
 
-/**
- * Dropzone AJAX handler
- * @return bool
- */
 function dropzone(){
     $file = (isset($_FILES['file'])) ? $_FILES['file'] : false;
     if (!$file) {
@@ -279,4 +298,26 @@ function dropzone(){
         return false;
     }
     return true;
+}
+
+function deleteimgfrompost(){
+    $img=(isset($_POST['img']))?$_POST['img']:false;
+    if(!$img){
+        return 'img param missing';
+    }
+    if(!file_exists(ORIGINALS_DIR.'/'.$img)){
+        return 'file does not exist';
+    }
+    if(!is_writable(ORIGINALS_DIR.'/'.$img)){
+        return 'file is not writable';
+    }
+    $r=@unlink(ORIGINALS_DIR.'/'.$img);
+    if(!$r){
+        return 'unknown unlink error';
+    }
+    if(file_exists(ORIGINALS_DIR.'/'.$img)){
+        return 'file still exists after unlinking (!?)';
+    }
+    return 'ok';
+
 }

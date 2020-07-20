@@ -102,6 +102,7 @@ code {
     text-align: center;
     border: 1px solid #444;
     margin: 4px 2px;
+    position: relative;
 }
 
 .img-view label {
@@ -111,6 +112,17 @@ code {
 
 .img-view .details {
     font-size:.8em;
+}
+
+.img-view .delete {
+    position:absolute;
+    bottom:8px;
+    right:8px;
+    color: red;
+    display:inline-block;
+    cursor: pointer;
+    padding: 2px;
+    background: #444;
 }
 
 .dropzone {
