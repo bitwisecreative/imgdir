@@ -27,6 +27,13 @@ img {
     position:fixed;
     right:16px;
 }
+.error {
+    color: red;
+    font-weight: bold;
+    padding: 8px;
+    border: 2px solid red;
+    background: pink;
+}
 </style>
 </head>
 <body class="checkered">
@@ -78,6 +85,26 @@ img {
         '__test_portrait.jpeg',
         '__test_landscape.gif',
         '__test_portrait.gif'];
+    // writable...
+    if(!is_writable(ORIGINALS_DIR)){
+        echo '<div class="error">ORIGINALS_DIR IS NOT WRITABLE!</div>';
+        exit;
+    }
+    if(!is_writable(CACHE_DIR)){
+        echo '<div class="error">CACHE_DIR IS NOT WRITABLE!</div>';
+        exit;
+    }
+    // img check...
+    foreach($i as $ii){
+        if(!file_exists(ORIGINALS_DIR.'/'.$ii)){
+            $r=copy(ROOT.'/test/img/'.$ii,ORIGINALS_DIR.'/'.$ii);
+            if(!$r){
+                echo '<div class="error">COULD NOT COPY TEST IMAGE!</div>';
+                exit;
+            }
+        }
+    }
+    //
     foreach($t as $test => $q){
         echo '<h4>'.$test.'</h4>';
         foreach($i as $img){

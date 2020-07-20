@@ -1,5 +1,11 @@
 <?php
 
+// TODO
+// Animated GIFs... It's such a pain in the ass that it looks like the best bet is to just use ImageCraft
+// https://github.com/coldume/imagecraft
+// ... And if that were the case, chances are this entire class would be refactored to just use ImageCraft directly...
+// For now, GIFs can be handled, but animations are lost (FYI - I started but only have the `isanimgif` method...)
+
 require_once 'config.php';
 
 class ImgDir {
@@ -120,7 +126,7 @@ class ImgDir {
         exit;
     }
 
-    private function imginfo($img,$dir=ORIGINALS_DIR.'/'){
+    public function imginfo($img,$dir=ORIGINALS_DIR.'/'){
         if(!file_exists($dir.$img)){
             return 'file does not exist';
         }
@@ -346,6 +352,24 @@ class ImgDir {
             }
             $this->original($img);
         }
+    }
+
+    private function isanimgif($filename) {
+        $fp = fopen($filename, "rb");
+        if (fread($fp, 3) !== "GIF") {
+            fclose($fp);
+            return false;
+        }
+        $frames = 0;
+        while (!feof($fp) && $frames < 2) {
+            if (fread($fp, 1) === "\x00") {
+                if (fread($fp, 1) === "\x21" || fread($fp, 2) === "\x21\xf9") {
+                    $frames++;
+                }
+            }
+        }
+        fclose($fp);
+        return $frames > 1;
     }
 
 }

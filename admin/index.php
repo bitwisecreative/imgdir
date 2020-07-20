@@ -25,6 +25,15 @@ switch($do){
     default:
         echo dashboard();
         break;
+    case 'view':
+        echo view();
+        break;
+    case 'upload':
+        echo upload();
+        break;
+    case 'dropzone':
+        dropzone();
+        exit;
 }
 
 //
@@ -39,10 +48,23 @@ function login() {
 
 function dashboard() {
     $content='';
-
     $content.=chunk_storage();
     $content.=chunk_stats();
+    $content.=chunk_diagnostic();
+    $content.='<hr />'.readme();
     return tpl('Dashboard',$content);
+}
+
+function view() {
+    $content='';
+    $content.=get_view();
+    return tpl('View',$content);
+}
+
+function upload() {
+    $content='';
+    $content.=get_upload();
+    return tpl('Upload',$content);
 }
 
 function tpl($title='',$content='') {
@@ -52,8 +74,9 @@ function tpl($title='',$content='') {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>'.htmlentities($title).' - ImgDir Admin</title>
-<!--<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/bulma@0.9.0/css/bulma.min.css" />-->
 <link rel="stylesheet" type="text/css" href="styles.css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="scripts.js"></script>
 </head>
 <body>
 <h1>'.$title.' - ImgDir Admin</h1>
@@ -67,9 +90,6 @@ function tpl($title='',$content='') {
 <div id="content">
 '.$content.'
 </div>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.1/dropzone.min.js"></script>
-<script src="scripts.js"></script>
 </body>
 </html>';
     return $out;
@@ -92,7 +112,7 @@ function chunk_storage(){
 }
 
 function chunk_stats(){
-    $imgext=['jpg','png','gif'];
+    $imgext=['jpg','jpeg','png','gif']; // Not 100% reliable but should be fine...
     $originals=0;
     if ($handle = opendir(ORIGINALS_DIR)) {
         while (false !== ($entry = readdir($handle))) {
@@ -128,59 +148,135 @@ function chunk_stats(){
     return $out;
 }
 
+function chunk_diagnostic(){
+    $max_upload_mb=round(file_upload_max_size()/1048576,2);
+    $gd_installed=function_exists('imagecreatefrompng');
+    $originals_writable=is_writable(ORIGINALS_DIR);
+    $cache_writable=is_writable(CACHE_DIR);
+    $out='
+        <div class="chunk">
+            <h3>Diagnostic</h3>
+            <div class="info">'.$max_upload_mb.' M max upload file size</div>';
+    $out.=($gd_installed)?'<div class="success">GD Installed</div>':'<div class="error">GD NOT Installed</div>';
+    $out.=($originals_writable)?'<div class="success">ORIGINALS_DIR is Writable</div>':'<div class="error">ORIGINALS_DIR is NOT Writable</div>';
+    $out.=($cache_writable)?'<div class="success">CACHE_DIR is Writable</div>':'<div class="error">CACHE_DIR is NOT Writable</div>';
+    $out.='</div>';
+    return $out;
+}
+
+function readme() {
+    include '../assets/parsedown-1.7.4/Parsedown.php';
+    $Parsedown = new Parsedown();
+    $content=$Parsedown->text(file_get_contents('../README.md'));
+    return $content;
+}
+function get_view() {
+    global $imgdir;
+    $images=[];
+    if ($handle = opendir(ORIGINALS_DIR)) {
+        while (false !== ($entry = readdir($handle))) {
+            $info=$imgdir->imginfo($entry);
+            if(is_array($info)){
+                $images[]=$info;
+            }
+        }
+        closedir($handle);
+    }
+    sort($images);
+    $img_out='';
+    foreach($images as $imginfo){
+        $img_out.='
+            <div class="img-view">
+                <img src="../'.$imginfo['img'].'?w=180&h=180&b=333333" />
+                <label>'.$imginfo['img'].'</label>
+                <div class="details">
+                '.$imginfo['mime'].'<br />'.$imginfo['size'][0].' x '.$imginfo['size'][1].'<br />'
+                .round($imginfo['bytes']/1000000,2).' MB<br />'
+                .date('Y-m-d H:i:s', $imginfo['mtime']).'
+                </div>
+            </div>';
+    }
+    $out='
+        <div class="view">
+        '.$img_out.'
+        </div>
+    ';
+    return $out;
+}
+
+function get_upload() {
+    $out='
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.1/dropzone.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.7.1/dropzone.min.css" />
+        <div class="error">Files with the same name will be overwritten.</div>
+        <hr />
+        <form class="dropzone" id="dz"></form>
+        <script>
+        Dropzone.autoDiscover=false;
+        $(function() {
+            $("#dz").dropzone({
+                url: "?do=dropzone",
+                maxFilesize: '.round(file_upload_max_size()/1048576,2).',
+                acceptedFiles: "image/png,image/gif,image/jpeg,image/pjpeg"
+            });
+        });
+        </script>
+        ';
+    return $out;
+}
+
+// Returns a file size limit in bytes based on the PHP upload_max_filesize and post_max_size
+function file_upload_max_size() {
+    static $max_size = -1;
+    if ($max_size < 0) {
+        $post_max_size = parse_size(ini_get('post_max_size'));
+        if ($post_max_size > 0) {
+            $max_size = $post_max_size;
+        }
+        $upload_max = parse_size(ini_get('upload_max_filesize'));
+        if ($upload_max > 0 && $upload_max < $max_size) {
+            $max_size = $upload_max;
+        }
+    }
+    return $max_size;
+}
+
+function parse_size($size) {
+    $unit = preg_replace('/[^bkmgtpezy]/i', '', $size);
+    $size = preg_replace('/[^0-9\.]/', '', $size);
+    if ($unit) {
+        return round($size * pow(1024, stripos('bkmgtpezy', $unit[0])));
+    }
+    else {
+        return round($size);
+    }
+}
 
 /**
  * Dropzone AJAX handler
  * @return bool
  */
-function ajaxUpload()
-{
-    $gallery = (isset($_POST['gallery'])) ? $_POST['gallery'] : false;
+function dropzone(){
     $file = (isset($_FILES['file'])) ? $_FILES['file'] : false;
-    if (!$gallery || !$file) {
+    if (!$file) {
         header("HTTP/1.0 424 Failed Dependency");
         return false;
     }
-    // Check mime
     $mime_ok = array('image/png', 'image/jpeg', 'image/pjpeg', 'image/gif');
     $tmp = $file['tmp_name'];
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $mime = finfo_file($finfo, $file['tmp_name']);
-    finfo_close($finfo);$mime_ok = array('image/png', 'image/jpeg', 'image/pjpeg', 'image/gif');
-    $tmp = $file['tmp_name'];
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $mime = finfo_file($finfo, $file['tmp_name']);
+    $mime = finfo_file($finfo, $tmp);
     finfo_close($finfo);
     if (!in_array($mime, $mime_ok)) {
         header("HTTP/1.0 415 Unsupported Media Type");
         return false;
     }
-    // Check exists
     $name = $file['name'];
-    $path_original = GALLERIE_ROOT . GALLERIE_ORIGINALS;
-    $original =  $path_original . $name;
-    if (file_exists($original)) {
-        $c = 1;
-        $parts = explode('.', $original);
-        $ext = array_pop($parts);
-        $name_original = implode($parts);
-        $name_new = $name_original . '-' . str_pad($c, 4, '0', STR_PAD_LEFT) . '.' . $ext;
-        while (file_exists($name_new)) {
-            $c++;
-            $name_new = $name_original . '-' . str_pad($c, 4, '0', STR_PAD_LEFT) . '.' . $ext;
-        }
-        $original = $name_new;
-    }
-    // Move file to originals dir
+    $original = ORIGINALS_DIR . '/' . $name;
     move_uploaded_file($tmp, $original);
-    // INSERT image in DB
-    $filename = str_replace('\\', '/', $original);
-    $filename = explode('/', $filename);
-    $filename = array_pop($filename);
-    $stmt = $this->db->prepare('INSERT INTO images (gallery_id, file, mime, title, sort) VALUES (?, ?, ?, ?, ?)');
-    $stmt->execute(array($gallery, $filename, $mime, '', 0));
-    $image_id = $this->db->lastInsertId();
-    // Build Images
-    $this->rebuildImages($image_id);
+    if(!file_exists($original)){
+        header("HTTP/1.0 500 Server failed to move uploaded file");
+        return false;
+    }
     return true;
 }
