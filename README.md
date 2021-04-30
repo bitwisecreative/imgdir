@@ -5,8 +5,8 @@
 
 #### Features
 
-- Auto-generated Image Sizing
-- Caching
+- Auto-Generated Image Sizing
+- Caching (and Auto-Recache on Original Modification)
 - Admin Area
 - PNG, JPG, GIF
 
@@ -20,7 +20,7 @@
 
 - Change the `ADMIN_PASSWORD` in `config.php`
 - You can upload images manually to the `originals` folder
-- GIF animations are not retained after resizing (TBD)
+- GIF animations are not retained after resizing
 
 #### Image Modifiers (GET Params):
 
