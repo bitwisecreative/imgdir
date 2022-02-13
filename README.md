@@ -56,3 +56,13 @@
 
 - `/__test_landscape.png?w=80&h=80&r=c`
     - resizes image to 80px wide and 80px tall, center-cropping the contents
+
+#### Admin Screenshots:
+
+![ImgDir Admin Dashboard](https://gallerie.pics/assets/imgdir/imgdir-admin-dash.png)
+
+![ImgDir Admin View](https://gallerie.pics/assets/imgdir/imgdir-admin-view.png)
+
+![ImgDir Admin Upload 1](https://gallerie.pics/assets/imgdir/imgdir-admin-upload-1.png)
+
+![ImgDir Admin Upload 2](https://gallerie.pics/assets/imgdir/imgdir-admin-upload-2.png)
